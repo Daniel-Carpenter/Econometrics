@@ -1,0 +1,84 @@
+############Excercise 8.4 simple math#############
+.412/.094
+1/.094
+
+0.9/0.175
+
+0.193/.064
+
+0.0014/0.0012	
+
+
+#hetero
+0.9/0.166
+
+0.193/.074
+
+0.0014/0.0012	
+
+
+##############Computer Exercise 4.C12##################
+library(tidyverse)
+library(broom)
+library(car)
+library(lmtest)
+library(magrittr)
+library(NHANES)
+library(estimatr)
+library(skimr)
+library(wooldridge)
+
+df <- as_tibble(econmath)
+
+est <- lm(colgpa ~ hsgpa + actmth + acteng,data=df)
+tidy(est)
+
+#Orginal
+.0282+.659*(1)+.0130*(1)+.0122*(1)
+#1 unit change hrsgpa - A 0.343 point increase in high school GPA leads to a (1.3714-0.938437) = 0.432963 increase in GPA
+.0282+.659*(1.343)+.0130*(1)+.0122*(1)
+#Change ACT scores to see same effect
+.0282+.659*(1)+.0130*(9.9)+.0122*(9.9)
+
+(1.3714-0.938437)
+
+#ACTMATH have same effect as ACTEND?
+linearHypothesis(est, c("actmth=acteng"))
+
+#LARGEST INFLUENCER ON COLGPA
+est <- lm(colgpa ~ age + work + study + econhs  + hsgpa + acteng + actmth + act + mathscr + male + calculus + attexc + attgood + fathcoll + mothcoll + score,data=df)
+tidy(est)
+
+
+#################Computer Exercise 8.C4##################
+
+df2 <- as_tibble(vote1)
+#?vote1
+
+est2 <- lm(U ~ prtystrA + democA + lexpendA + lexpendB,data=df2)
+tidy(est2)
+summary(est2)
+
+est2.error <- lm(voteA ~ prtystrA + democA + lexpendA + lexpendB,data=df2)
+tidy(est2)
+summary(est2.error)
+
+#BP TEST on est2
+bptest(est2)
+
+#WHITE TEST on est2
+bptest(est2, ~ fitted(est2) + I(fitted(est2)^2) )
+
+
+#################Computer Exercise 8.C7##################
+
+df3 <- as_tibble(loanapp)
+#?loanapp
+
+#NON-ROBUST MODEL
+est3 <- lm(approve ~ white + hrat + obrat + loanprc + unem + male + married + dep + sch + cosign + chist + pubrec + mortlat1 + mortlat2 + vr,data=df3)
+tidy(est3)
+
+#ROBUST MODEL
+est3.rob <- lm_robust(approve ~ white + hrat + obrat + loanprc + unem + male + married + dep + sch + cosign + chist + pubrec + mortlat1 + mortlat2 + vr,data=df3)
+tidy(est3.rob)

@@ -1,0 +1,59 @@
+---
+title:  'Econometrics Lab'
+author: "Daniel Carpenter"
+date:   "Spring 2019"
+fontsize: 12pt
+geometry: margin=1in
+output:
+  github_document:
+    toc: yes
+    number_sections: yes
+    toc_depth: 3
+---
+      
+```{r defaultRendering, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, include = TRUE, message=FALSE, warning=FALSE)
+```
+
+```{r}
+#install.packages("tidyverse", repos='http://cran.us.r-project.org')
+#install.packages("skimr", repos='http://cran.us.r-project.org')
+#install.packages("wooldridge", repos='http://cran.us.r-project.org')
+
+#Loading packages
+library(tidyverse)
+library(skimr)
+library(wooldridge)
+
+#read in data
+df <- as_tibble(wage1)
+
+#Stats for Education
+skim(df$educ)
+#Mean = 12.56
+
+#Stats for Women
+skim(df$female)
+#Women compose 48% of entire sample
+
+#Visualization
+ggplot(df, aes(educ)) + geom_histogram(binwidth=1)+theme_classic()
+#Most common education is about 12
+
+ggplot(df, aes(wage)) + geom_histogram(binwidth=1)+theme_classic()
+#Most common wage = approx. 3
+
+#Wage Mutation
+df <- df %>% mutate(realwage=wage*4.53)
+summary(df$realwage)
+
+#Filter to see only women
+summary(df$female)
+df <- df %>% filter(female==1)
+summary(df$female)
+
+#Drop N/A's
+summary(df$wage)
+df <- df %>% filter(!is.na(wage))
+summary(df$wage)
+```

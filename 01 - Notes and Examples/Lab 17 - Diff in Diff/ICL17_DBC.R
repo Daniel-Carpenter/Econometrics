@@ -1,0 +1,59 @@
+#KEY: Interaction variables shows differences in differences
+# Basic ideas: when you add in more variables, your interaction 
+  #variable's coef will go down, which gives DiD
+
+
+library(tidyverse)
+library(wooldridge)
+library(broom)
+library(magrittr)
+library(stargazer)
+library(clubSandwich)
+library(lmtest)
+
+?injury
+df <- as_tibble(injury)
+df %<>% filter(ky==1)
+
+
+# is there even a effect?
+
+df %>% group_by(afchnge,highearn) %>% 
+        summarize(mean.ldurat = mean(ldurat))
+
+
+did <- (1.58 - 1.38) - (1.13 - 1.13)
+did
+#INTERPRETATION: Policy change increased benefits
+                #by 20%
+
+#Make factor variables
+df %<>% mutate(afchnge = as.factor(afchnge),
+               highearn = as.factor(highearn))
+
+#REgress
+est.did <- lm(ldurat ~ afchnge*highearn,data=df)
+tidy(est.did)
+
+#REgress
+#est.did.rob <- lm_robust(ldurat ~ afchnge*highearn,data=df)
+#tidy(est.did)
+
+#INterpretation
+  #policy caused 19% increase in weeks on benefits:
+  #statistically significant in weeks earned
+
+
+#First format indust and injtype
+df %<>% mutate(inust = as.factor(indust),
+               injtype = as.factor(injtype))
+
+
+est.did.x <- lm(ldurat ~ afchnge*highearn
+                       + male + married + hosp
+                       + I(age^2) + indust
+                       + injtype + lprewage,data=df)
+tidy(est.did.x)
+
+
+stargazer(est.did,est.did.x,type="text")

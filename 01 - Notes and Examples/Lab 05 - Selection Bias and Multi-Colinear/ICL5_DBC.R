@@ -1,0 +1,37 @@
+#Group 2:- Daniel Carpenter, Natalie Cook, Nan Jiang 
+#install.packages("car", repos='http://cran.us.r-project.org')
+
+#DATA LOAD
+library(tidyverse)
+library(broom)
+library(wooldridge)
+library(car)
+df <- as_tibble(wage2)
+
+#VIEW
+glimpse(df)
+
+#REGRESSION (IQ ON WAGE) -> S1
+est1 <- lm(IQ ~ educ, data=df)
+tidy(est1)
+
+#ADD LOG WAGE COLLUMN
+df <- df %>% mutate(logwage=log(wage))
+
+#REGRESSION (LOG(WAGE) ON EDUC)
+est2 <- lm(logwage ~ educ, data=df)
+tidy(est2)
+
+#REGRESSION ON LOG WAGE ON EDUC AND IQ
+est3 <- lm(logwage ~ educ + IQ, data=df)
+tidy(est3)
+
+#TEST IF ~B1 = ^B1 + ^B2~S1 
+est2$coefficients["educ"] == est3$coefficients["educ"] +
+  est3$coefficients["IQ"]*est1$coefficients["educ"]
+
+est2$coefficients["educ"] #~b1 = .069
+est3$coefficients["educ"] #^b1 = .039
+
+#Beta 1 Tilda > Beta 1 Hat
+

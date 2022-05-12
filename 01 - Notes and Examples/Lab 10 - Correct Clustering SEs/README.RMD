@@ -1,0 +1,76 @@
+---
+title:  'Econometrics Lab'
+author: "Daniel Carpenter"
+date:   "Spring 2019"
+fontsize: 12pt
+geometry: margin=1in
+output:
+  github_document:
+    toc: yes
+    number_sections: yes
+    toc_depth: 3
+---
+      
+```{r defaultRendering, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, include = TRUE, message=FALSE, warning=FALSE)
+```
+
+```{r}
+#SUMMARY
+#3. Unweighted vs Weighted regression
+
+library(tidyverse)
+library(broom)
+library(car)
+library(lmtest)
+library(magrittr)
+library(NHANES)
+library(estimatr)
+library(skimr)
+
+df <- as_tibble(NHANESraw)
+?NHANESraw
+
+#FILTER ONLY 2019_10 and Age = 19
+df %<>% filter(as.character(SurveyYr)=='2009_10' & Age>=19)
+
+#SELECT #SELECT VARIABLES
+df %<>% select(WTINT2YR,BMI, SleepHrsNight, Age, Education, Gender, Race1)
+
+#DROP NAs
+df %<>% drop_na(BMI, SleepHrsNight, Age, Education, Gender, Race1)
+skim(df)
+
+#MEAN BMI IN SAMPLE (UNWEIGHTED,WEIGHTED)
+mean(df$BMI)
+weighted.mean(df$BMI, w=df$WTINT2YR)
+
+#UNWEIGHTED REGRESSION
+est.unweighted <- lm(BMI ~ Gender + Race1 + SleepHrsNight, data=df)
+tidy(est.unweighted)
+    #note on interpretation: if you are male, then your BMI is .8 less than female.
+
+#WEIGHTED REGRESSION
+est.weighted <- lm(BMI ~ Gender + Race1 + SleepHrsNight, weights=WTINT2YR, data=df)
+tidy(est.weighted)
+    #Observable difference in gender estimates
+    #Differentials do not changes greatly
+
+#READ IN DATA FROM CSV
+df.auto <- read_csv('https://tyleransom.github.io/teaching/MetricsLabs/auto.csv')
+
+#LOG PRICE MUTATION (df.auto)
+df.auto %<>% mutate(log.price = log(price), foreign = as.factor(foreign))
+#REGRESS
+est.auto <- lm(log.price ~ weight + foreign, data=df.auto)
+tidy(est.auto)
+
+#HETERO ROBUST-INF REGRESS
+est.rob.auto <- lm_robust(log.price ~ weight + foreign, data=df.auto)
+tidy(est.rob.auto)
+
+est.clust.auto <- lm_robust(log.price ~ weight + foreign, data=df.auto,
+                            clusters=df.auto$manufacturer)
+linearHypothesis(est.clust.auto,c("weight=0","foreignForeign=0"))
+glance(est.auto)
+```

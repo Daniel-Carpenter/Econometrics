@@ -1,0 +1,75 @@
+---
+title:  'Econometrics Lab'
+author: "Daniel Carpenter"
+date:   "Spring 2019"
+fontsize: 12pt
+geometry: margin=1in
+output:
+  github_document:
+    toc: yes
+    number_sections: yes
+    toc_depth: 3
+---
+      
+```{r defaultRendering, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, include = TRUE, message=FALSE, warning=FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(broom)
+library(wooldridge)
+library(skimr)
+
+df <-as_tibble(meap93)
+
+#show summary stats
+skim(df)
+
+#Estimate a regression
+est <- lm(math10 ~ expend, data=df)
+tidy(est)
+glance(est)
+
+#Get B0 and B1
+#change in x means a change in 1 dollar
+#Change in y means change in pass rate of 1% point
+#When you increase expenditures by $1 per pupil
+#Pass rate increases by 0.00246 pp (this came from expend)
+
+#Questions to consider:
+#Should we look at a larger number? $1 = small
+#Multiply by 1000 to see it. 2.46 pp change
+beta1 <- cov(df$math10,df$expend)/var(df$expend)
+beta0 <- mean(df$math10)-beta1*mean(df$expend)
+
+#Plot
+ggplot(df,aes(expend,math10)) +
+  geom_point() +
+  geom_smooth(method='lm')
+
+#Plot Non-linear regression (log)
+df <- df %>% mutate(logexpend = log(expend))
+
+#Recreate model
+est <- lm(math10 ~ logexpend, data=df)
+tidy(est)
+glance(est)
+ggplot(df,aes(logexpend,math10)) +
+  geom_point() +
+  geom_smooth(method='lm')
+# Interpretation: B1 Hat = 11.2
+# When you increase spending by 10%, pass rates increase by 1.12 pp.
+
+#Compute standard error by hand
+n <- dim(df)[1]
+sig <- sqrt( sum (est$residuals^2) /(n-2) ) # or, more simply, glance(est)$sigma
+SSTx <- (n-1)*var(df$logexpend)
+sumx2 <- sum(df$logexpend^2)
+
+#Std error of intercept
+sqrt((sig^2*(1/n)*sumx2)/SSTx)
+
+#Std error of slope coefficient
+sqrt(sig^2/SSTx)
+```
